@@ -1,12 +1,46 @@
----
-  - name: "Playing with Ansible"
-    hosts: local
-    tasks:
+- name: Check for updates on Linux systems
+  hosts: all
+  become: yes
 
-    - name: "just execute a ls -lrt command"
-      shell: "uname -a "
-      register: "output"
+  tasks:
+    - name: Update package cache (Debian-based)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == 'Debian' and inventory_hostname in groups['ubuntu']
 
-    - debug: var=output.stdout_lines
+    - name: Update package cache (RedHat-based)
+      yum:
+        name: "*"
+        state: latest
+      when: ansible_os_family == 'RedHat' and inventory_hostname in groups['rhel']
 
+    - name: List available updates (Debian-based)
+      apt:
+        upgrade: yes
+        update_cache: yes
+        list: yes
+      register: available_updates
+      when: ansible_os_family == 'Debian' and inventory_hostname in groups['ubuntu']
 
+    - name: List available updates (RedHat-based)
+      yum:
+        list: updates
+      register: available_updates
+      when: ansible_os_family == 'RedHat' and inventory_hostname in groups['rhel']
+
+    - name: Display available updates
+      debug:
+        var: available_updates.stdout_lines
+      when: available_updates.stdout_lines | length > 0
+
+    - name: Upgrade all packages (Debian-based)
+      apt:
+        upgrade: dist
+        update_cache: yes
+      when: available_updates.stdout_lines | length > 0 and ansible_os_family == 'Debian' and inventory_hostname in groups['ubuntu']
+
+    - name: Upgrade all packages (RedHat-based)
+      yum:
+        name: "*"
+        state: latest
+      when: available_updates.stdout_lines | length > 0 and ansible_os_family == 'RedHat' and inventory_hostname in groups['rhel']
