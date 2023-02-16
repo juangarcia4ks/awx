@@ -1,7 +1,6 @@
 ---
   - name: "Playing with Ansible"
-    hosts: all
-    connection: remote
+    hosts: servers
     tasks:
 
     - name: "just execute a ls -lrt command"
