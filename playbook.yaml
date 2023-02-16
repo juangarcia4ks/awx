@@ -1,10 +1,13 @@
-- hosts: servers
-  tasks:
-    - name: Update cache 
-      apt:
-       update_cache: yes
-         
-    - name: Upgrade all packages on servers
-      apt: 
-        name: "*"
-        state: latest
+---
+  - name: "Playing with Ansible"
+    hosts: all
+    connection: remote
+    tasks:
+
+    - name: "just execute a ls -lrt command"
+      shell: "uname -a "
+      register: "output"
+
+    - debug: var=output.stdout_lines
+
+
